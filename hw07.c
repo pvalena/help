@@ -3,11 +3,14 @@
 #include <string.h>
 #include <assert.h>
 
+#define WIDTH 368
+#define HEIGHT 448
+#define TEST 0
 
 
 typedef unsigned char  byte;
 
-//DUlezite aby compilator tam nepridaval mezery, kvuli optimalizaci, ale nam by to zmenilo velikost strukturu
+//header representation
 typedef struct {
     byte id_length; //0
     byte color_map_type; //32
@@ -23,6 +26,7 @@ typedef struct {
 }
 TGAheader;
 
+//pixel representation
 typedef struct {
     byte blue;
     byte green;
@@ -30,21 +34,23 @@ typedef struct {
     byte alpha;
 } RGBA;
 
+//whole image representation
 typedef struct{
     TGAheader header;
     RGBA *data;
 }TGAImage;
 
+//jen nekere Deklerace - nedulezite
 void watch_draw_time(TGAImage* self, const int hours, const int minutes);
 void watch_draw_time_color(TGAImage* self, const int hours, const int minutes, const RGBA* fg_color, const RGBA* bg_color);
 
-//zjistovani/kopirovani hodnoty z headru (z bytu na cislo) a predavani cisla, takze kdykoli si necham zavolat tuhle fci budu li chtit hodnotu, pac kde hodnote se dostanu
-//ale je to identifikovano jako unsigned char, proste byte, musi memcpy do integer promene vytvorene (co prima konverze typova??? , hraje roli to ze to je pole v nekterych pripadech??)
+
+//pomocne FUNKCE PRO PRISTUP K HODNOTAM V HEADRU
 int tgaheader_width( const TGAheader * self ) {
     int width = 0;
 
     memcpy( &width, self->width, 2 );
-    printf("width: %d\n",width);
+    if (TEST) printf("width: %d\n",width);
 
     return width;
 }
@@ -53,17 +59,16 @@ int tgaheader_height( const TGAheader * self ) {
     int height = 0;
 
     memcpy( &height, self->height, 2 );
-    printf("height: %d\n",height);
+    if (TEST) printf("height: %d\n",height);
 
     return height;
-
 }
 
 int tgaheader_channels( const TGAheader * self ) {
     return self->depth / 8;
 }
 
-//zjistovani hodnot z headru pres fci - asi prehlednejsi
+//FCE PRO PRISTUP k hodnotam z headru
 int tga_width( const TGAImage * self ) {
     return tgaheader_width( &self->header );
 }
@@ -77,35 +82,39 @@ int tga_channels( const TGAImage * self ) {
 }
 
 
-//prevodova fce z 2d souradnic do indexu 1D odpovidajiciho serioveho elementu
+//MANIPULATION FUNCTIONS
+// 2D array index into 1D array index
 int to1D(int row, int col, int cols){
     return col + row * cols;
 }
 
-
-//cokoliv zavola fci se souradnicema x,y bude prevedeno z 2d pole do odpovidajiciho indexu 1d pole jiz nainacializovaneho v *data
-//prehodim x, y kdyz pocatek je 0,0 v dolnim levem rohy pokud prehodim x z y tak he to jakobych ho otozil o 90/ prohodil sloupce/radky
-void set_pixel(TGAImage *self, int y, int x, RGBA *pix){
-    self->data[to1D(x,y, tga_height(self))].alpha = pix->alpha;
-    self->data[to1D(x,y, tga_height(self))].blue = pix->blue;
-    self->data[to1D(x,y, tga_height(self))].green = pix->green;
-    self->data[to1D(x,y, tga_height(self))].red = pix->red;
+//SET ALL 4 ATRIBUTES OF SINGLE PIXEL
+void set_pixel(TGAImage *self, int x, int y, RGBA *pix){
+    self->data[to1D(y,x, tga_height(self))].alpha = pix->alpha;
+    self->data[to1D(y,x, tga_height(self))].blue = pix->blue;
+    self->data[to1D(y,x, tga_height(self))].green = pix->green;
+    self->data[to1D(y,x, tga_height(self))].red = pix->red;
 }
 
+
+
+
+//DRAWING FUNCTIONS
+//background
 void draw_bg(TGAImage *self, RGBA *bg){
     for (int i = 0; i < tga_height(self); i++)
     {
         for (int j = 0; j < tga_width(self); j++)
         {
             set_pixel(self, i ,j , bg);
-            printf("bg: i:%d j:%d\n",i ,j);
+            if (TEST) printf("bg: i:%d j:%d\n",i ,j);
         }
 
     }
 
 }
 
-//pocita indexy nalezejici vykresleni znaku  ty posila do fce ktere zapisuje ty hodnotu do pole clena strukty *data
+//digits
 void draw_one(TGAImage *self, int dx, int dy, RGBA *pix){
     for (int i = 0 + dx; i < 195 + dx; i++)
     {
@@ -114,12 +123,13 @@ void draw_one(TGAImage *self, int dx, int dy, RGBA *pix){
             if (i > 15 + dx && j > 139 + dy)
             {
                 set_pixel(self, i, j, pix);
-                printf("one: i:%d j:%d\n",i ,j);
+                if (TEST) printf("one: i:%d j:%d\n",i ,j);
             }
         }
     }
 }
 
+//zatim dela to stejne co draw_one ()
 void draw_zero(TGAImage *self, int dx, int dy, RGBA *pix){
     for (int i = 0 + dx; i < 195 + dx; i++)
     {
@@ -134,36 +144,35 @@ void draw_zero(TGAImage *self, int dx, int dy, RGBA *pix){
     }
 }
 
-//nevim jestli tohle muze byt jen v mainu nebo pokuud pouziju typedef nejak na tohle pak to jde takhle
-//typedef of array of function pointers (takhle pka func_array je pak data type plus jmesno)
-//typedef TGAImage* (*func_array[])(TGAImage *, size_t, size_t, RGBA *);
 
+//TASK functions
 void watch_draw_time(TGAImage* self, const int hours, const int minutes){
 
     FILE *file = fopen("aw.tga","wb");
     assert(file);
 
+    //boil down to single digits
     int firstH = hours / 10;;
     int secondH = hours % 10;
     int firstMin = minutes / 10;
     int secondMin = minutes % 10;
 
+    //pixel definition for foreground
     RGBA fg = {.red = 30, .green = 10, .blue = 10, .alpha = 255};
-//zde musem volat fci s fcnim ukazatel na pole a pdle first/,... hodnot se zavola rovnou dana fce,,nepamatujeu se uz inicializaci atd
-//POLE FUNKCNICHU UKAZATELU
+
+    //FUNCTION POINTERS ARRAY (prvni prvek func_array[0] = &draw zero, druhy prvke array[1] = &draw one....)
     void (*func_array[])(TGAImage*, int, int, RGBA*) = {
         draw_zero, draw_one, /*draw_two, draw_three, draw_foure, draw_five, draw_six, draw seven, draw_eight, draw_nine*/
     };
-//jen budu omezovat nebo pricit konec zacatek k ouradnicim(prevod do 1D to pak prepocita na ta mista v celem poli, ktere je uz predpripraveno)
-    //draw_one(self,0,0,&fg);
-    /*void (*fptr)(TGAImage*, int, int, RGBA*);
-    fptr = &draw_one;*/
 
+
+    //function calling based on individual digit (dx, dy prirustky podle toho kera/kde je cislice na ciferniku)
    /* func_array[firstH](self, 0, 0, &fg);
     func_array[secondH](self, 184, 0, &fg);
     func_array[firstMin](self, 0, 224, &fg);
-    func_array[secondMin](self, 184, 224, &fg);*/
+    func_array[secondMin](self, 184, 224, &fg);  uncomment az bude fungovat*/
 
+    //write it all in the file
     int writeCount = fwrite( &self->header, sizeof (TGAheader),1,file); //velikost prvku je header celej a je jen jeden
     assert(writeCount == 1);
 
@@ -173,33 +182,34 @@ void watch_draw_time(TGAImage* self, const int hours, const int minutes){
 }
 
 
-//POTREBUJU INIT BRIGHTNESS NENI TO pro cernobile nebo c oto kurva je
+//tady vytvarim vlastni struktury a nastavuju jejich hodnoty > PRAVDEPODOBNE PROBLE ZDE NEKDE
 TGAImage *tga_new(const int height, const int width){
-    TGAImage *tga = (TGAImage*)malloc(sizeof(TGAImage));// na heapu takze to neni jen loklani na stacku
-  //  ALLOCTEST( TGAImage );
-
-    memset(&tga->header, 0, sizeof(TGAheader)); //potrebuje adresu ukazatele na novy objekt tga, pac fce to chce
-//TADY CHYBI NEKERE HODNOTY
-    //tga->header == (*tga).header
+    TGAImage *tga = (TGAImage*)malloc(sizeof(TGAImage));// heap allocation for the whole image
+ 
+    //nastavovani hodnot headru
+    memset(&tga->header, 0, sizeof(TGAheader)); //vynulovani
     tga->header.image_type = 2;
     tga->header.depth = 32;
-    tga->header.descriptor |= 1 << 3;
-    tga->header.descriptor |= 1 << 5;
+    
+    //00101000 = 40
+    tga->header.descriptor |= 1 << 3; 
+    tga->header.descriptor |= 1 << 5;  
 
-
-    //zapis rozmeru na dva bytes, prvni vyssii jsou nuly, pak cislo 0-255 zapsane binarne v nizsim bytu
+    //zkopirovani hodnot sirky vysky na dva bajty
     memcpy(&tga->header.width, &width, 2 );
     memcpy(&tga->header.height, &height, 2 );
 
     //ted alokuje pamet pro pixely podle = velikost struct pixel x vyska x sirka
-    tga->data = (RGBA*)malloc(sizeof(RGBA) * width * height); //data je typu RGBA*
-    //nastavime celou alokovanou  pamet pro data
-    memset(tga->data, 0, sizeof(RGBA) * width * height); //tga->data uz je ukazatel
+    tga->data = (RGBA*)malloc(sizeof(RGBA) * width * height);
+
+    //nastavime celou alokovanou pamet pro data na 0
+    memset(tga->data, 0, sizeof(RGBA) * width * height);
 
     return tga;
 
 }
 
+//FREE all allocated memory
 void tga_free(TGAImage **self){
 
     free((*self)->data);
@@ -224,17 +234,18 @@ int main(int argc, char **argv){
         minutes = strtoll(argv[2], NULL, 10);
     }
 
-    //soubor otevru tady nebo muzu presunout do zapisovaci fce?
-
+    
 
     //vytvorim strukturu obrazku
     TGAImage *self = tga_new(448,368);
 
-    //bytvorim struktury pixelu kt. priradim urcite hodnoty tak aby vznikly ruzne barvy pozadi a popredi
+ 
+    //pixel setting for foreground and background
     RGBA bg = {.red = 220, .green = 220, .blue = 20, .alpha = 255};
     RGBA fg = {.red = 100, .green = 10, .blue = 10, .alpha = 255};
 
-    draw_bg(self, &bg);
+    
+    //draw_bg(self, &bg);
 
 
     watch_draw_time(self,hours, minutes);
