@@ -6,7 +6,7 @@
 #define WIDTH 368
 #define HEIGHT 448
 #define TEST 0
-
+#define TEST1 1
 
 typedef unsigned char  byte;
 
@@ -127,8 +127,8 @@ void draw_one(TGAImage *self, int dx, int dy, RGBA *pix){
         {
             if (i > 15 + dx && j > 139 + dy)
             {
-                set_pixel(self, i, j, pix);
-                if (TEST) printf("one: i:%d j:%d\n",i ,j);
+                set_pixel(self, j, i, pix);
+                if (TEST1) printf("one: i:%d j:%d\n",i ,j);
             }
         }
     }
@@ -173,16 +173,16 @@ void watch_draw_time(TGAImage* self, const int hours, const int minutes){
 
 
     //function calling based on individual digit (dx, dy prirustky podle toho kera/kde je cislice na ciferniku)
-   /* func_array[firstH](self, 0, 0, &fg);
-    func_array[secondH](self, 184, 0, &fg);
-    func_array[firstMin](self, 0, 224, &fg);
-    func_array[secondMin](self, 184, 224, &fg);  uncomment az bude fungovat*/
+    func_array[firstH](self, 0, 0, &fg);
+  //  func_array[secondH](self, 184, 0, &fg);
+  //  func_array[firstMin](self, 0, 224, &fg);
+  //  func_array[secondMin](self, 184, 224, &fg);  //uncomment az bude fungovat
 
     //write it all in the file
-    int writeCount = fwrite( &self->header, sizeof (TGAheader),1,file); //velikost prvku je header celej a je jen jeden
+    int writeCount = fwrite( &self->header, sizeof (TGAheader),1,file); //tady adresu &self->header, pack je to primo clen ("hodnota")
     assert(writeCount == 1);
 
-    writeCount = fwrite(&self->data, sizeof(RGBA), tga_width(self) * tga_height(self),file);
+    writeCount = fwrite(self->data, sizeof(RGBA), tga_width(self) * tga_height(self),file); //tady NE adresu &self primo ten clen je vlastne ukazatel na misto co chci zapisovat 
 
     fclose(file);
 }
@@ -250,7 +250,7 @@ int main(int argc, char **argv){
  
     //pixel setting for foreground and background
     RGBA bg = {.red = 220, .green = 220, .blue = 20, .alpha = 255};
-    RGBA fg = {.red = 100, .green = 10, .blue = 10, .alpha = 255};
+    RGBA fg = {.red = 50, .green = 10, .blue = 50, .alpha = 255};
 
     
     draw_bg(self, &bg);
