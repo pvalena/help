@@ -90,10 +90,13 @@ int to1D(int row, int col, int cols){
 
 //SET ALL 4 ATRIBUTES OF SINGLE PIXEL
 void set_pixel(TGAImage *self, int x, int y, RGBA *pix){
-    self->data[to1D(y,x, tga_height(self))].alpha = pix->alpha;
+    int height = tga_height(self);
+    self->data[to1D(y,x,height)] = *pix; //plocha kopie, jde pac nejsou ukazatel
+
+    /*self->data[to1D(y,x, tga_height(self))].alpha = pix->alpha;
     self->data[to1D(y,x, tga_height(self))].blue = pix->blue;
     self->data[to1D(y,x, tga_height(self))].green = pix->green;
-    self->data[to1D(y,x, tga_height(self))].red = pix->red;
+    self->data[to1D(y,x, tga_height(self))].red = pix->red;*/
 }
 
 
@@ -102,9 +105,11 @@ void set_pixel(TGAImage *self, int x, int y, RGBA *pix){
 //DRAWING FUNCTIONS
 //background
 void draw_bg(TGAImage *self, RGBA *bg){
-    for (int i = 0; i < tga_height(self); i++)
+    int height = tga_height(self);
+    int width = tga_width(self);
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < tga_width(self); j++)
+        for (int j = 0; j < width; j++)
         {
             set_pixel(self, i ,j , bg);
             if (TEST) printf("bg: i:%d j:%d\n",i ,j);
@@ -159,6 +164,7 @@ void watch_draw_time(TGAImage* self, const int hours, const int minutes){
 
     //pixel definition for foreground
     RGBA fg = {.red = 30, .green = 10, .blue = 10, .alpha = 255};
+    //set_pixel(self,0,0,&fg);
 
     //FUNCTION POINTERS ARRAY (prvni prvek func_array[0] = &draw zero, druhy prvke array[1] = &draw one....)
     void (*func_array[])(TGAImage*, int, int, RGBA*) = {
@@ -176,7 +182,7 @@ void watch_draw_time(TGAImage* self, const int hours, const int minutes){
     int writeCount = fwrite( &self->header, sizeof (TGAheader),1,file); //velikost prvku je header celej a je jen jeden
     assert(writeCount == 1);
 
-    writeCount = fwrite(&self->data, sizeof(RGBA), tga_width(self) * tga_height(self) * sizeof(RGBA),file);
+    writeCount = fwrite(&self->data, sizeof(RGBA), tga_width(self) * tga_height(self),file);
 
     fclose(file);
 }
@@ -192,8 +198,8 @@ TGAImage *tga_new(const int height, const int width){
     tga->header.depth = 32;
     
     //00101000 = 40
-    tga->header.descriptor |= 1 << 3; 
-    tga->header.descriptor |= 1 << 5;  
+    tga->header.descriptor = (1 << 3) | (1 << 5); 
+
 
     //zkopirovani hodnot sirky vysky na dva bajty
     memcpy(&tga->header.width, &width, 2 );
@@ -208,6 +214,8 @@ TGAImage *tga_new(const int height, const int width){
     return tga;
 
 }
+
+
 
 //FREE all allocated memory
 void tga_free(TGAImage **self){
@@ -230,14 +238,14 @@ int main(int argc, char **argv){
     }
     else
     {
-        hours = strtol(argv[1],NULL,10);
-        minutes = strtoll(argv[2], NULL, 10);
+        hours = atoi(argv[1]);
+        minutes = atoi(argv[2]);
     }
 
     
 
     //vytvorim strukturu obrazku
-    TGAImage *self = tga_new(448,368);
+    TGAImage *self = tga_new(HEIGHT,WIDTH);
 
  
     //pixel setting for foreground and background
@@ -245,7 +253,7 @@ int main(int argc, char **argv){
     RGBA fg = {.red = 100, .green = 10, .blue = 10, .alpha = 255};
 
     
-    //draw_bg(self, &bg);
+    draw_bg(self, &bg);
 
 
     watch_draw_time(self,hours, minutes);
