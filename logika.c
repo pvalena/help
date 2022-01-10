@@ -15,23 +15,23 @@ int ** naalokuj_pamet(int R, int C) {
     for (int i = 0; i < R; i++)
         for (int j = 0; j < C; j++)
             arr[i][j] = zero;
-    
+
     return arr;
 }
 
 void * uvolni_pamet(int ** arr_aloc, int R) {
     for (int i = 0; i < R; i++)
         free(arr_aloc[i]);
- 
+
     free(arr_aloc);
     return 0;
 }
 
 int vygeneruj_cislo() {
   int cislo = rand();
-  if (cislo%2 == 0) {return 4;
-  //printf("%d\n", rand());
-  } else return 2;
+  if (cislo%2 == 0) return 4;
+
+  return 2;
 }
 
 
@@ -41,7 +41,7 @@ int ** make_control_array(int**array, int R, int C){
   for (int i = 0; i < R; i++){
       for (int j = 0; j < C; j++){
         control_array[i][j] = array[i][j];
-      } 
+      }
     }
   return control_array;
 }
@@ -65,20 +65,17 @@ int count_zeros(int ** array, int R, int C) {
   for (int i = 0; i < R; i++){
     for (int j = 0; j < C; j++){
       if (array[i][j] == 0) num++;
-    } 
+    }
   }
   return num;
 }
-
-
-
 
 int move_left(int ** array, int R, int C){
   int same = 0;
   int** control = make_control_array(array, R, C);
   for (int r = 0; r <= (R-1); r++){
     for (int j = 0; j <= (C-1) ; j++){
-      for (int  i = j; i < (C-1); i++){  
+      for (int  i = j; i < (C-1); i++){
         if (array[r][j] == 0){
           if (array[r][i+1] > 0){
             array[r][j] = array[r][i+1];
@@ -105,7 +102,7 @@ int move_left(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 1;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
   return same;
@@ -123,7 +120,7 @@ int move_right(int ** array, int R, int C){
             array[r][i-1] = 0;
             //printf("%d %d %d %d\n",array[r][0],array[r][1],array[r][2],array[r][3]);
           }
-        } 
+        }
       }
     }
 
@@ -131,7 +128,7 @@ int move_right(int ** array, int R, int C){
       if (array[r][k]==array[r][k-1]){
         array[r][k] = 2 * array[r][k];
         SCORE += array[r][k];
-        
+
         for (int  l = (k-1); l > 0 ; l--){
           array[r][l] = array[r][l-1];
           array[r][l-1] = 0;
@@ -146,7 +143,7 @@ int move_right(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 1;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
   return same;
@@ -157,7 +154,7 @@ int move_up(int ** array, int R, int C){
   int** control = make_control_array(array, R, C);
   for (int c = 0; c <= (C-1); c++){
     for (int j = 0; j <= (R-1) ; j++){
-      for (int  i = j; i < (R-1); i++){  
+      for (int  i = j; i < (R-1); i++){
         if (array[j][c] == 0){
           if (array[i+1][c] > 0){
             array[j][c] = array[i+1][c];
@@ -170,7 +167,7 @@ int move_up(int ** array, int R, int C){
       if (array[k][c]==array[k+1][c]){
         array[k][c] = 2 * array[k][c];
         SCORE += array[k][c];
-        
+
         for (int  l = (k+1); l < (C-1); l++){
           array[l][c] = array[l+1][c];
           array[l+1][c] = 0;
@@ -185,7 +182,7 @@ int move_up(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 1;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
   return same;
@@ -203,7 +200,7 @@ int move_down(int ** array, int R, int C){
             array[i-1][c] = 0;
             //printf("%d %d %d %d\n",array[r][0],array[r][1],array[r][2],array[r][3]);
           }
-        } 
+        }
       }
     }
 
@@ -211,7 +208,7 @@ int move_down(int ** array, int R, int C){
       if (array[k][c]==array[k-1][c]){
         array[k][c] = 2 * array[k][c];
         SCORE += array[k][c];
-        
+
         for (int  l = (k-1); l > 0 ; l--){
           array[l][c] = array[l-1][c];
           array[l-1][c] = 0;
@@ -226,7 +223,7 @@ int move_down(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 1;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
   return same;
@@ -234,7 +231,7 @@ int move_down(int ** array, int R, int C){
 
 
 void is_Lost(int**array, int R, int C, int lose){
-  
+
   int** c = make_control_array(array, R, C);
   move_down(c, R, C);
   //printf("LOSE:");
@@ -260,12 +257,12 @@ void add_Num(int** array, int R, int C, int lose) {
     printf("SCORE: %d zeros: %d, num = %d,  pozice = %d\n", SCORE, numOfZeros, number, position );
       for (int i = 0; i < R; i++){
       for (int j = 0; j < C; j++){
-        if (array[i][j] == 0){ 
+        if (array[i][j] == 0){
           position--;
           if (position == 0) {array[i][j] = number; break;}
         }
       }
-    } 
+    }
     if (count_zeros(array, R,C) == 0) {
       is_Lost(array, R, C,lose);
     }
