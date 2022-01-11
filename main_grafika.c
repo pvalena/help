@@ -319,6 +319,7 @@ int main (int argc, char **argv){
                         break;
 
                         case SDLK_x:
+                        case SDLK_q:
                         quit = 1;
                         break;
                     }
@@ -332,20 +333,22 @@ int main (int argc, char **argv){
                 SDL_RenderPresent(renderer);
 
                 if (lose != 0) {
+                    SDL_Delay(100);
+
                     if (lose == 1){
-                        SDL_Delay(1000);
+
                         Vykresli_prohru(renderer,Sans, Message);
-                        SDL_RenderPresent(renderer);
-                        SDL_Delay(5000);
-                        quit=true;
 
                     } else if (lose == 2){
-                        SDL_Delay(1000);
+
                         Vykresli_vyhru(renderer,Sans, Message);
-                        SDL_RenderPresent(renderer);
-                        SDL_Delay(5000);
-                        quit=true;
+
                     }
+
+                    SDL_RenderPresent(renderer);
+                    SDL_Delay(7000);
+                    //quit=true;
+                    change = 1;
                 }
 
           } else {
