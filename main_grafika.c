@@ -348,6 +348,8 @@ int main (int argc, char **argv){
                     }
                 }
 
+          } else {
+            SDL_Delay(10);
           }
       }
 
