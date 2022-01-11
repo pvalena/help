@@ -283,48 +283,44 @@ int main (int argc, char **argv){
 
       int change = 1;
 
-      while (!quit)
-      {
-          while (SDL_PollEvent(&e))
-          {
-            if( e.type == SDL_QUIT )
-                {
+      while (!quit) {
+          while (SDL_PollEvent(&e)) {
+              if( e.type == SDL_QUIT ) {
                     quit = true;
-                }
-                //User presses a key
-                else if( e.type == SDL_KEYDOWN )
-                {
-                    //Select surfaces based on key press
-                    switch( e.key.keysym.sym )
-                    {
+              }
+              //User presses a key
+              else if( e.type == SDL_KEYDOWN ) {
+                  //Select surfaces based on key press
+                  switch( e.key.keysym.sym )
+                  {
 
-                        case SDLK_UP:
-                        lose = move_left_add(array,R,C);
-                        change = 1;
-                        break;
+                      case SDLK_UP:
+                      lose = move_left_add(array,R,C);
+                      change = 1;
+                      break;
 
-                        case SDLK_DOWN:
-                        lose = move_right_add(array,R,C);
-                        change = 1;
-                        break;
+                      case SDLK_DOWN:
+                      lose = move_right_add(array,R,C);
+                      change = 1;
+                      break;
 
-                        case SDLK_LEFT:
-                        lose = move_up_add(array,R,C);
-                        change = 1;
-                        break;
+                      case SDLK_LEFT:
+                      lose = move_up_add(array,R,C);
+                      change = 1;
+                      break;
 
-                        case SDLK_RIGHT:
-                        lose = move_down_add(array,R,C);
-                        change = 1;
-                        break;
+                      case SDLK_RIGHT:
+                      lose = move_down_add(array,R,C);
+                      change = 1;
+                      break;
 
-                        case SDLK_x:
-                        case SDLK_q:
-                        quit = 1;
-                        break;
-                    }
-                }
-            }
+                      case SDLK_x:
+                      case SDLK_q:
+                      quit = 1;
+                      break;
+                  }
+              }
+          }
 
           if (change) {
                 change = 0;
@@ -332,28 +328,31 @@ int main (int argc, char **argv){
                 Vykresli_hraci_pole(renderer, Sans, Message, Score, Score_text, sources, array, R, C);
                 SDL_RenderPresent(renderer);
 
-                if (lose != 0) {
+                if (lose > 0) {
                     SDL_Delay(100);
 
                     if (lose == 1){
 
                         Vykresli_prohru(renderer,Sans, Message);
+                        quit = true;
 
                     } else if (lose == 2){
 
                         Vykresli_vyhru(renderer,Sans, Message);
+                        change = 1;
 
                     }
 
                     SDL_RenderPresent(renderer);
-                    SDL_Delay(7000);
-                    //quit=true;
-                    change = 1;
+                    SDL_Delay(5000);
+                    lose = 0;
                 }
 
           } else {
             SDL_Delay(10);
+
           }
+
       }
 
       Uvolni_textury(sources);

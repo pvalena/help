@@ -5,6 +5,7 @@
 #include "logika.h"
 
 int SCORE=0;
+int WON=0;
 
 
 int ** naalokuj_pamet(int R, int C) {
@@ -55,11 +56,14 @@ int vygeneruj_pozici(int pocet_volnych) {
 
 
 int win(int**array, int i, int j){
+  if (WON == 0) return 0;
+
   int lose = 0;
   if (array[i][j] == 2048){
     lose = 2;
     printf("You are the winner!!!\n\n");
     //printing(array,R,C);
+    WON = 1;
   }
   return lose;
 }
@@ -69,7 +73,7 @@ int count_zeros(int ** array, int R, int C) {
   for (int i = 0; i < R; i++){
     for (int j = 0; j < C; j++){
       if (array[i][j] == 0) num++;
-    } 
+    }
   }
   return num;
 }
@@ -332,7 +336,7 @@ int move_down_add(int ** array, int R, int C){
 }
 
 int ** startGame(int R, int C, int lose){
-  if (R < 4 || C < 4){
+  if (R < 2 || C < 2){
     printf("Error : Input must be R and C must be at least 4\n");
     exit(-1);
   }
