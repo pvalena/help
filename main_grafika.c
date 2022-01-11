@@ -34,8 +34,6 @@ SDL_Texture* loadTexture(char* image, SDL_Renderer *ren){
 }
 
 void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Message,SDL_Texture* Score ,SDL_Texture * Score_text, Sources sources, int**array, int R, int C) {
-    
-
 
     SDL_Color color = {119, 110, 101};
     SDL_Color color2 = {238, 228, 218};
@@ -60,14 +58,12 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
 
     char str[10];
     sprintf(str, "%d", SCORE);
-    
-    
 
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "2048", color); 
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "2048", color);
 
     SDL_Surface* surfaceScore_text = TTF_RenderText_Solid(Sans, "SCORE", color2);
     SDL_Surface* surfaceScore = TTF_RenderText_Solid(Sans, str, color3);
-    
+
     Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
     Score = SDL_CreateTextureFromSurface(renderer, surfaceScore);
     Score_text = SDL_CreateTextureFromSurface(renderer, surfaceScore_text);
@@ -77,7 +73,7 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
 
 
     SDL_Rect Message_rect; //create a rect
-    Message_rect.x = 110;  //controls the rect's x coordinate 
+    Message_rect.x = 110;  //controls the rect's x coordinate
     Message_rect.y = 0; // controls the rect's y coordinte
     Message_rect.w = 200; // controls the width of the rect
     Message_rect.h = 120; // controls the height of the rect
@@ -85,16 +81,14 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
     SDL_Rect rect;
     rect.x = START_X;
     rect.y = START_Y;
-    rect.h = MEZERA + 4 * (WIDTH+MEZERA);
-    rect.w = MEZERA + 4 * (WIDTH+MEZERA);
+    rect.h = MEZERA + C * (WIDTH+MEZERA);
+    rect.w = MEZERA + R * (WIDTH+MEZERA);
 
 
-
-      
     SDL_SetRenderDrawColor(renderer, 238, 228, 218, 255); // Nastavení barvy na zlutou
-    SDL_RenderClear(renderer);  
+    SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-    
+
     SDL_SetRenderDrawColor(renderer, 187, 173, 160, 255);
     SDL_RenderFillRect(renderer, &rect);
     rect.x = START_X + MEZERA +2*(WIDTH+MEZERA);
@@ -105,7 +99,7 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
 
     Message_rect.x = rect.x + MEZERA/2;
     Message_rect.y = rect.y + MEZERA/2;
-    Message_rect.w = WIDTH*3/4; 
+    Message_rect.w = WIDTH*3/4;
     Message_rect.h = 40;
     SDL_RenderCopy(renderer, Score_text, NULL, &Message_rect);
 
@@ -123,12 +117,12 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
     for (int i = 0; i < R; i++){
         for (int j = 0; j < C; j++){
 
-            int h = array[j][i];
+            int h = array[i][j];
 
             rect.x = START_X + MEZERA + i*(WIDTH + MEZERA);
             rect.y = START_Y + MEZERA + j*(WIDTH + MEZERA) ;
             if (h == 0){
-                index =0 ;
+                index = 0;
             } else {
                 index = 1;
                 while (h != (1 << index)){
@@ -241,8 +235,9 @@ void Uvolni_textury(Sources sources){
 int main (int argc, char **argv){
 
     assert(argc == 3);
-    const int R = atoi(argv[1]);
-    const int C= atoi(argv[2]);
+    // Vykresluje se opacne
+    const int C = atoi(argv[1]);
+    const int R = atoi(argv[2]);
 
     int lose = 0;
     int** array;
@@ -255,7 +250,7 @@ int main (int argc, char **argv){
     TTF_Init();
 
     TTF_Font* Sans;
-    
+
     SDL_Texture* Message;
     SDL_Texture* Score;
     SDL_Texture * Score_text;
@@ -278,8 +273,6 @@ int main (int argc, char **argv){
           fprintf(stderr, "SDL_CreateRenderer Error: %s", SDL_GetError());
           quit = true;
       }
-
-     
 
 
       Sources sources;
@@ -304,34 +297,37 @@ int main (int argc, char **argv){
                     //Select surfaces based on key press
                     switch( e.key.keysym.sym )
                     {
+
                         case SDLK_UP:
-                        lose = move_up_add(array,R,C);
+                        lose = move_left_add(array,R,C);
                         change = 1;
                         break;
 
                         case SDLK_DOWN:
-                        lose = move_down_add(array,R,C);
+                        lose = move_right_add(array,R,C);
                         change = 1;
                         break;
 
                         case SDLK_LEFT:
-                        lose = move_left_add(array,R,C);
+                        lose = move_up_add(array,R,C);
                         change = 1;
-                        break; 
+                        break;
 
                         case SDLK_RIGHT:
-                        lose = move_right_add(array,R,C);
+                        lose = move_down_add(array,R,C);
                         change = 1;
+                        break;
+
+                        case SDLK_X:
+                        quit = 1;
                         break;
                     }
                 }
             }
-            
-          
 
           if (change) {
                 change = 0;
-                
+
                 Vykresli_hraci_pole(renderer, Sans, Message, Score, Score_text, sources, array, R, C);
                 SDL_RenderPresent(renderer);
 
@@ -343,8 +339,6 @@ int main (int argc, char **argv){
                         SDL_Delay(5000);
                         quit=true;
 
-                        
-                        
                     } else if (lose == 2){
                         SDL_Delay(1000);
                         Vykresli_vyhru(renderer,Sans, Message);
@@ -352,16 +346,13 @@ int main (int argc, char **argv){
                         SDL_Delay(5000);
                         quit=true;
                     }
-                    
                 }
 
-          }  
+          }
       }
 
       Uvolni_textury(sources);
-     
       SDL_DestroyRenderer(renderer);
-      
     }
 
     uvolni_pamet(array,R);
