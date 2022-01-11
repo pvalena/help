@@ -14,19 +14,18 @@ int ** naalokuj_pamet(int R, int C) {
     for (int i = 0; i < R; i++){
         arr[i] = (int*)malloc(C * sizeof(int));
         if (!*arr) {fprintf(stderr, "out of memory 2"); exit(-1);}
-    }
-    int zero = 0;
-    for (int i = 0; i < R; i++)
+
         for (int j = 0; j < C; j++)
-            arr[i][j] = zero;
-    
+            arr[i][j] = 0;
+    }
+
     return arr;
 }
 
 void * uvolni_pamet(int ** arr_aloc, int R) {
     for (int i = 0; i < R; i++)
         free(arr_aloc[i]);
- 
+
     free(arr_aloc);
     return 0;
 }
@@ -45,7 +44,7 @@ int ** make_control_array(int**array, int R, int C){
   for (int i = 0; i < R; i++){
       for (int j = 0; j < C; j++){
         control_array[i][j] = array[i][j];
-      } 
+      }
     }
   return control_array;
 }
@@ -83,9 +82,9 @@ int move_left(int ** array, int R, int C){
   int lose = 0;
   int wining = 0;
   int** control = make_control_array(array, R, C);
-  for (int r = 0; r <= (R-1); r++){
-    for (int j = 0; j <= (C-1) ; j++){
-      for (int  i = j; i < (C-1); i++){  
+  for (int r = 0; r < R; r++){
+    for (int j = 0; j < C; j++){
+      for (int  i = j; i < (C-1); i++){
         if (array[r][j] == 0){
           if (array[r][i+1] > 0){
             array[r][j] = array[r][i+1];
@@ -108,15 +107,15 @@ int move_left(int ** array, int R, int C){
       }
     }
   }
-  for (int i = 0; i < C; i++){
-      for (int j = 0; j < R; j++){
+  for (int i = 0; i < R; i++){
+      for (int j = 0; j < C; j++){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
-  
+
   if (lose == 2){return lose;}
   else {return same;}
 }
@@ -126,6 +125,7 @@ int move_right(int ** array, int R, int C){
   int lose = 0;
   int wining = 0;
   int** control = make_control_array(array, R, C);
+
   for (int r = 0; r <= (R-1); r++){
     for (int j = (C-1); j >= 0 ; j--){
       for (int  i = j; i > 0; i--){
@@ -134,7 +134,7 @@ int move_right(int ** array, int R, int C){
             array[r][j] = array[r][i-1];
             array[r][i-1] = 0;
           }
-        } 
+        }
       }
     }
 
@@ -142,7 +142,7 @@ int move_right(int ** array, int R, int C){
       if (array[r][k]==array[r][k-1]){
         array[r][k] = 2 * array[r][k];
         SCORE += array[r][k];
-        
+
         for (int  l = (k-1); l > 0 ; l--){
           array[r][l] = array[r][l-1];
           array[r][l-1] = 0;
@@ -153,15 +153,14 @@ int move_right(int ** array, int R, int C){
       }
     }
   }
-  for (int i = 0; i < C; i++){
-      for (int j = 0; j < R; j++){
+  for (int i = 0; i < R; i++){
+      for (int j = 0; j < C; j++){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
-  
 
   if (lose == 2){return lose;}
   else {return same;}
@@ -172,9 +171,9 @@ int move_up(int ** array, int R, int C){
   int lose = 0;
   int wining = 0;
   int** control = make_control_array(array, R, C);
-  for (int c = 0; c <= (C-1); c++){
-    for (int j = 0; j <= (R-1) ; j++){
-      for (int  i = j; i < (R-1); i++){  
+  for (int c = 0; c < C; c++){
+    for (int j = 0; j < R; j++){
+      for (int i = j; i < (R-1); i++){
         if (array[j][c] == 0){
           if (array[i+1][c] > 0){
             array[j][c] = array[i+1][c];
@@ -187,7 +186,7 @@ int move_up(int ** array, int R, int C){
       if (array[k][c]==array[k+1][c]){
         array[k][c] = 2 * array[k][c];
         SCORE += array[k][c];
-        
+
         for (int  l = (k+1); l < (C-1); l++){
           array[l][c] = array[l+1][c];
           array[l+1][c] = 0;
@@ -198,8 +197,8 @@ int move_up(int ** array, int R, int C){
       }
     }
   }
-  for (int i = 0; i < C; i++){
-      for (int j = 0; j < R; j++){
+  for (int i = 0; i < R; i++){
+      for (int j = 0; j < C; j++){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
@@ -245,8 +244,8 @@ int move_down(int ** array, int R, int C){
       }
     }
   }
-  for (int i = 0; i < C; i++){
-      for (int j = 0; j < R; j++){
+  for (int i = 0; i < R; i++){
+      for (int j = 0; j < C; j++){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
