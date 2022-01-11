@@ -187,7 +187,7 @@ int move_up(int ** array, int R, int C){
         array[k][c] = 2 * array[k][c];
         SCORE += array[k][c];
 
-        for (int  l = (k+1); l < (C-1); l++){
+        for (int l = (k+1); l < (R-1); l++){
           array[l][c] = array[l+1][c];
           array[l+1][c] = 0;
         }
@@ -202,10 +202,9 @@ int move_up(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
-  
 
   if (lose == 2){return lose;}
   else {return same;}
@@ -225,15 +224,15 @@ int move_down(int ** array, int R, int C){
             array[i-1][c] = 0;
             //printf("%d %d %d %d\n",array[r][0],array[r][1],array[r][2],array[r][3]);
           }
-        } 
+        }
       }
     }
 
-    for (int  k = (C-1); k > 0 ; k--){
+    for (int  k = (R-1); k > 0 ; k--){
       if (array[k][c]==array[k-1][c]){
         array[k][c] = 2 * array[k][c];
         SCORE += array[k][c];
-        
+
         for (int  l = (k-1); l > 0 ; l--){
           array[l][c] = array[l-1][c];
           array[l-1][c] = 0;
@@ -249,10 +248,10 @@ int move_down(int ** array, int R, int C){
         if (array[i][j] != control[i][j]){
           same = 3;
         }
-      } 
+      }
   }
   uvolni_pamet(control,R);
-  
+
   if (lose == 2){return lose;}
   else {return same;}
 }
