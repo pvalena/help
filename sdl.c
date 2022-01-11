@@ -84,92 +84,90 @@ void Uvolni_textury(Sources sources){
 int main (int argc, char **argv){
 
     assert(argc == 3);
-
     const int R = atoi(argv[1]);
     const int C = atoi(argv[2]);
 
+
+    TTF_Init();
+
+    TTF_Font* Sans;
+    Sans = TTF_OpenFontIndex("font/sans.ttf", 25, 0);
+
+     if (Sans == NULL) {
+        fprintf(stderr, "error: font not found: %s \n", SDL_GetError());
+        TTF_Quit();
+        exit(EXIT_FAILURE);
+    }
+
     if (SDL_Init(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
-        return 1;
     }
+
     SDL_Window* window = SDL_CreateWindow("2048", 400, 150, 1000, 800, SDL_WINDOW_SHOWN);
     if (!window) {
         fprintf(stderr, "SDL_CreateWindow Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
+
+    } else {
+
+      bool quit = false;
+
+      SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+      if (!renderer) {
+          SDL_DestroyWindow(window);
+          fprintf(stderr, "SDL_CreateRenderer Error: %s", SDL_GetError());
+          quit = true;
+      }
+
+      SDL_Color color = {255, 255, 0};
+
+      SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "2048", color); 
+
+      SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+      SDL_FreeSurface( surfaceMessage );
+
+
+      SDL_Rect Message_rect; //create a rect
+      Message_rect.x = 5;  //controls the rect's x coordinate 
+      Message_rect.y = 5; // controls the rect's y coordinte
+      Message_rect.w = 100; // controls the width of the rect
+      Message_rect.h = 100; // controls the height of the rect
+
+
+      Sources sources;
+
+      SDL_Event e;
+
+      Nacti_textury(renderer, sources);
+
+      while (!quit)
+      {
+          while (SDL_PollEvent(&e))
+          {
+              if (e.type == SDL_QUIT)
+              {
+                  quit = true;
+              }
+          }
+          SDL_SetRenderDrawColor(renderer, 250, 248, 239, 255); // Nastavení barvy na zlutou
+          SDL_RenderClear(renderer);                      // Vykreslení pozadí
+          //SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+          SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+          Vykresli_hraci_pole(renderer, sources, R, C);
+
+          SDL_RenderPresent(renderer);  // Prezentace kreslítka
+      }
+
+      Uvolni_textury(sources);
+
+      SDL_DestroyTexture( Message );
+      SDL_DestroyRenderer(renderer);
+
     }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer) {
-        SDL_DestroyWindow(window);
-        fprintf(stderr, "SDL_CreateRenderer Error: %s", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-
-
-
-
-
-
-
-
-
-
-    TTF_Init();
-    TTF_Font* Sans;
-    Sans = TTF_OpenFontIndex("./font/sans.tff", 25,0);
-     if (Sans == NULL) {
-        fprintf(stderr, "error: font not found\n : %s \n", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
-    SDL_Color color = {255, 255, 0};
-
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "2048", color); 
-
-    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-    SDL_FreeSurface( surfaceMessage );
-
-    SDL_Rect Message_rect; //create a rect
-    Message_rect.x = 5;  //controls the rect's x coordinate 
-    Message_rect.y = 5; // controls the rect's y coordinte
-    Message_rect.w = 100; // controls the width of the rect
-    Message_rect.h = 100; // controls the height of the rect
-
-
-    SDL_Event e;
-    bool quit = false;
-
-    Sources sources;
-    Nacti_textury(renderer, sources);
-
-    while (!quit)
-    {
-        while (SDL_PollEvent(&e))
-        {
-            if (e.type == SDL_QUIT)
-            {
-                quit = true;
-            }
-        }
-        SDL_SetRenderDrawColor(renderer, 250, 248, 239, 255); // Nastavení barvy na zlutou
-        SDL_RenderClear(renderer);                      // Vykreslení pozadí
-        //SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-
-        Vykresli_hraci_pole(renderer, sources, R, C);
-
-        SDL_RenderPresent(renderer);  // Prezentace kreslítka
-    }
-
-    Uvolni_textury(sources);
-
-    SDL_DestroyRenderer(renderer);
-
-    SDL_DestroyTexture( Message );
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+
     TTF_CloseFont( Sans );
     TTF_Quit();
 
