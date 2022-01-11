@@ -318,7 +318,7 @@ int main (int argc, char **argv){
                         change = 1;
                         break;
 
-                        case SDLK_X:
+                        case SDLK_x:
                         quit = 1;
                         break;
                     }
