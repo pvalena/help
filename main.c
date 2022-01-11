@@ -5,61 +5,46 @@
 #include "output.h"
 #include "logika.h"
 
+
+
 int main (int argc, char **argv){
 
   assert(argc == 3);
   const int R = atoi(argv[1]);
   const int C = atoi(argv[2]);
 
-  if (R < 4 || C < 4){
-    printf("Error : Input must be R and C must be at least 4");
-    return 1;
-  }
-
-  int win = 0;
+  
   int lose = 0;
-  int SCORE = 0;
-
   int** array;
-  array = naalokuj_pamet(R, C);
+  char movement;
+  
+  array = startGame(R, C,lose);
+  printing(array,R,C); 
+  /*array[0][1]=1024;
+  array[0][0]=1024;*/
 
-  printing(array,R,C);
-
-  int num = 0;
-
-  add_Num(array,R,C,lose);
-  add_Num(array,R,C,lose);
-  printing(array,R,C);
-
-  int quit = 0;
-
-  while(!quit) {
-    switch ( getchar() ){
-
-      case 'w':
-        move_up_add(array,R,C,lose);
+  while((movement != 'x') && (lose == 0)) {
+    movement = getchar();
+    switch (movement){
+      case 'w': 
+        lose = move_up_add(array,R,C);
+         printing(array,R,C);
         break;
-
       case 's':
-        move_down_add(array,R,C,lose);
+        lose = move_down_add(array,R,C);
+         printing(array,R,C);
         break;
-
       case 'a':
-        move_left_add(array,R,C,lose);
+        lose = move_left_add(array,R,C);
+        printing(array,R,C);
         break;
-
-      case 'd':
-        move_right_add(array,R,C,lose);
-        break;
-
-      case 'x':
-        quit = 1;
+      case 'd': 
+        lose = move_right_add(array,R,C);
+         printing(array,R,C);
         break;
     }
-
-    printing(array,R,C);
+    vypisHlasku(lose);
   }
-
-  uvolni_pamet(array,R);
+  uvolni_pamet(array,R);  
   return 0;
 }
