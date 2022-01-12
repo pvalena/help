@@ -56,7 +56,7 @@ int vygeneruj_pozici(int pocet_volnych) {
 
 
 int win(int**array, int i, int j){
-  if (WON == 0) return 0;
+  if (WON == 1) return 0;
 
   int lose = 0;
   if (array[i][j] == 2048){
@@ -279,23 +279,26 @@ int is_Lost(int**array, int R, int C){
   return lose;
 }
 
-int add_Num(int** array, int R, int C) {
+int add_Num(int** array, int R, int C, int N) {
   int lose = 0;
   int numOfZeros = count_zeros(array, R, C);
   if (numOfZeros == 0) {
     lose = is_Lost(array, R, C);
   } else {
-    int number = vygeneruj_cislo();
-    int position = vygeneruj_pozici(numOfZeros);
-    //printf("SCORE: %d zeros: %d, num = %d,  pozice = %d\n", SCORE, numOfZeros, number, position );
-      for (int i = 0; i < R; i++){
-      for (int j = 0; j < C; j++){
-        if (array[i][j] == 0){ 
-          position--;
-          if (position == 0) {array[i][j] = number; break;}
+    while (N-- > 0) {
+      int number = vygeneruj_cislo();
+      int position = vygeneruj_pozici(numOfZeros);
+      //printf("SCORE: %d zeros: %d, num = %d,  pozice = %d\n", SCORE, numOfZeros, number, position );
+        for (int i = 0; i < R; i++){
+        for (int j = 0; j < C; j++){
+          if (array[i][j] == 0){
+            position--;
+            if (position == 0) {array[i][j] = number; break;}
+          }
         }
       }
-    } 
+    }
+
     if (count_zeros(array, R,C) == 0) {
       lose = is_Lost(array, R, C);
     }
@@ -303,39 +306,39 @@ int add_Num(int** array, int R, int C) {
   return lose;
 }
 
-int move_left_add(int ** array, int R, int C){
+int move_left_add(int ** array, int R, int C, int N){
   int lose=0;
   lose = move_left(array, R, C);
-  
-  if (lose == 3) { 
+
+  if (lose == 3) {
     lose =0;
-    lose = add_Num(array, R, C);  
+    lose = add_Num(array, R, C, N);
     }
 
   return lose;
 }
 
-int move_right_add(int ** array, int R, int C){
+int move_right_add(int ** array, int R, int C, int N){
   int lose =0;
   lose = move_right(array, R, C);
-  if (lose == 3) {lose =add_Num(array, R, C);} 
+  if (lose == 3) {lose =add_Num(array, R, C, N);}
   return lose;
 }
-int move_up_add(int ** array, int R, int C){
+int move_up_add(int ** array, int R, int C, int N){
   int lose = 0;
   lose = move_up(array, R, C);
-  if (lose == 3) {lose = add_Num(array, R, C);}
+  if (lose == 3) {lose = add_Num(array, R, C, N);}
   return lose;
 }
-int move_down_add(int ** array, int R, int C){
+int move_down_add(int ** array, int R, int C, int N){
   int lose = 0;
   lose = move_down(array, R, C);
-  if (lose == 3) {lose =add_Num(array, R, C);}
+  if (lose == 3) {lose =add_Num(array, R, C, N);}
 
   return lose;
 }
 
-int ** startGame(int R, int C, int lose){
+int ** startGame(int R, int C, int N, int lose){
   if (R < 2 || C < 2){
     printf("Error : Input must be R and C must be at least 4\n");
     exit(-1);
@@ -343,7 +346,6 @@ int ** startGame(int R, int C, int lose){
   int ** array;
   array = naalokuj_pamet(R, C);
 
-  lose =add_Num(array,R,C);
-  lose =add_Num(array,R,C);
+  lose = add_Num(array,R,C, N * 2);
   return array;
 }

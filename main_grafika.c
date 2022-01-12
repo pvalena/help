@@ -6,6 +6,8 @@
 #include <SDL2/SDL_ttf.h>
 #include "logika.h"
 
+#define TEST 0
+
 const int MEZERA = 15;
 const int WIDTH = 106;
 const int HEIGHT = WIDTH;
@@ -33,6 +35,51 @@ SDL_Texture* loadTexture(char* image, SDL_Renderer *ren){
 	return texture;
 }
 
+void Vykresli_cislo(SDL_Renderer *renderer, SDL_Rect* rect, TTF_Font* Sans, const int h, int i){
+
+    i -= 12;
+    const int m = (i > 8 ? 130 : 0);
+
+    char str[20];
+    sprintf(str, "%d", h);
+
+    //SDL_Color color = {119, 110, 101};
+    SDL_Color color = {238 - m, 228 - m, 218 - m};
+
+    int bg[10][3] = {
+        { 79, 170, 191},  // 4k
+        {169, 100, 191},  // 8k
+        { 29, 110, 201},  // 16k
+        { 70,  70, 191},  // 32k
+        { 55, 160,  51},
+        {109,  20, 245},
+        {229,  51,  51},
+        {69,  70, 101},
+        {30, 30, 30},
+        {255, 255, 255},
+      };
+
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, str, color);
+
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_FreeSurface( surfaceMessage );
+
+    const int s = 20;
+    SDL_Rect Message_rect;
+    Message_rect.x = rect->x + s/2;
+    Message_rect.y = rect->y + s;
+    Message_rect.w = rect->w - s;
+    Message_rect.h = rect->h - s*2;
+
+    i %= 10;
+
+    SDL_SetRenderDrawColor(renderer, bg[i][0], bg[i][1], bg[i][2], 255);
+    SDL_RenderFillRect(renderer, rect);
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+
+    SDL_DestroyTexture( Message );
+}
+
 void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Message,SDL_Texture* Score ,SDL_Texture * Score_text, Sources sources, int**array, int R, int C) {
 
     SDL_Color color = {119, 110, 101};
@@ -56,7 +103,7 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
         }
     }
 
-    char str[10];
+    char str[20];
     sprintf(str, "%d", SCORE);
 
     SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "2048", color);
@@ -105,7 +152,7 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
 
     Message_rect.x = rect.x +MEZERA + 1.75*WIDTH-20* delka_score;
     Message_rect.y = rect.y + 40;
-    Message_rect.w = 20*delka_score; 
+    Message_rect.w = 20*delka_score;
     Message_rect.h = 60;
     SDL_RenderCopy(renderer, Score, NULL, &Message_rect);
 
@@ -129,8 +176,13 @@ void Vykresli_hraci_pole (SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Me
                     index++;
                 }
             }
+            if (index < 12) {
+              SDL_RenderCopy(renderer, sources[index], NULL, &rect);
 
-            SDL_RenderCopy(renderer, sources[index], NULL, &rect);
+            } else {
+              Vykresli_cislo(renderer, &rect, Sans, h, index);
+
+            }
         }
     }
     SDL_DestroyTexture( Message );
@@ -149,13 +201,13 @@ void Vykresli_prohru(SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Message
         TTF_Quit();
         exit(EXIT_FAILURE);
     }
- 
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "OH, YOU LOST !!", color);  
-    Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage); 
-    SDL_FreeSurface( surfaceMessage ); 
+
+    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, "OH, YOU LOST !!", color);
+    Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_FreeSurface( surfaceMessage );
 
     SDL_Rect Message_rect; //create a rect
-    Message_rect.x = START_X+(WIDTH+MEZERA);  //controls the rect's x coordinate 
+    Message_rect.x = START_X+(WIDTH+MEZERA);  //controls the rect's x coordinate
     Message_rect.y = START_Y+(WIDTH+MEZERA); // controls the rect's y coordinte
     Message_rect.w = 250; // controls the width of the rect
     Message_rect.h = 150; // controls the height of the rect
@@ -166,13 +218,10 @@ void Vykresli_prohru(SDL_Renderer *renderer, TTF_Font* Sans, SDL_Texture*Message
     rect.h = MEZERA + 4 * (WIDTH+MEZERA);
     rect.w = MEZERA + 4 * (WIDTH+MEZERA);
 
-    
-    
     SDL_SetRenderDrawColor(renderer, 238, 228, 218, 255);
-    SDL_RenderFillRect(renderer, &rect); 
+    SDL_RenderFillRect(renderer, &rect);
     SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-    
-    
+
     SDL_DestroyTexture( Message );
     TTF_CloseFont( Sans );
 }
@@ -242,7 +291,17 @@ int main (int argc, char **argv){
     int lose = 0;
     int** array;
 
-    array = startGame( R, C, lose);
+    int N = (R*C) / 64;
+    if (N < 1) N = 1;
+
+    array = startGame(R, C, N, lose);
+
+    if (TEST) {
+      for (int i = 10; i < 30; ++i) {
+        array[i - 10][1] = 1 << i;
+      }
+    }
+
     int sirka = R*(MEZERA+WIDTH)+ MEZERA+2*START_X;
     int vyska = C*(MEZERA+WIDTH)+ MEZERA+2*START_Y;
 
@@ -295,22 +354,22 @@ int main (int argc, char **argv){
                   {
 
                       case SDLK_UP:
-                      lose = move_left_add(array,R,C);
+                      lose = move_left_add(array, R, C, N);
                       change = 1;
                       break;
 
                       case SDLK_DOWN:
-                      lose = move_right_add(array,R,C);
+                      lose = move_right_add(array, R, C, N);
                       change = 1;
                       break;
 
                       case SDLK_LEFT:
-                      lose = move_up_add(array,R,C);
+                      lose = move_up_add(array, R, C, N);
                       change = 1;
                       break;
 
                       case SDLK_RIGHT:
-                      lose = move_down_add(array,R,C);
+                      lose = move_down_add(array, R, C, N);
                       change = 1;
                       break;
 
